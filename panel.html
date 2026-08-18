@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SpotCheck: Accessibility Toolkit</title>
+    <link rel="stylesheet" href="panel.css" />
+    <script src="theme-init.js"></script>
+  </head>
+  <body>
+    <header class="header">
+      <h1 class="header__title">
+       <span class="header__logo" aria-hidden="true"></span>
+       <span class="sr-only">SpotCheck: Accessibility Toolkit</span>
+        <span class="version__badge">v.1.0</span>
+      </h1>
+      <p class="header__lede">
+        Toggle any of the tests to spot check common accessibility issues directly in the browser. Each one links to its related WCAG 2.2 success criteria. 
+      </p>
+      <fieldset class="theme-switch">
+        <legend class="theme-switch__legend">Theme</legend>
+        <div class="theme-switch__options">
+          <label class="theme-switch__option">
+            <input
+              type="radio"
+              name="theme"
+              value="light"
+              class="theme-switch__input"
+            />
+            <span class="theme-switch__label">Light</span>
+          </label>
+          <label class="theme-switch__option">
+            <input
+              type="radio"
+              name="theme"
+              value="dark"
+              class="theme-switch__input"
+            />
+            <span class="theme-switch__label">Dark</span>
+          </label>
+          <label class="theme-switch__option">
+            <input
+              type="radio"
+              name="theme"
+              value="system"
+              class="theme-switch__input"
+            />
+            <span class="theme-switch__label">System</span>
+          </label>
+        </div>
+      </fieldset>
+    </header>
+
+    <main>
+      <ul class="tool-list" id="tool-list"></ul>
+    </main>
+
+    <footer class="footer">
+      <p class="footer__p">Learn more about &nbsp; <a href="https://www.spotcheck.tools" class="footer__link" rel="noopener noreferrer" target="_blank"> SpotCheck</a></p>
+      <p class="footer__p">© 2026 &nbsp; <a href="https://www.homergaines.com" class="footer__link" rel="noopener noreferrer" target="_blank"> Homer Gaines</a></p>
+    </footer>
+
+    <script src="panel.js"></script>
+  </body>
+</html>
