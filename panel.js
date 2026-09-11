@@ -74,6 +74,15 @@
       linkName: "Input Label Checker WCAG criteria",
       link: "https://www.spotcheck.tools/input-label-checker#criteria-heading",
     },
+    {
+      id: "target-size-checker",
+      name: "Target Size Checker",
+      ns: "__a11yTargetSizeChecker",
+      file: "scripts/target-size-checker.js",
+      desc: "Measures every clickable target and flags the ones under 24 by 24 that can\u2019t claim the spacing exception.",
+      linkName: "Target Size Checker WCAG criteria",
+      link: "https://www.spotcheck.tools/target-size-checker#criteria-heading",
+    },
   ];
 
   var listEl = document.getElementById('tool-list');

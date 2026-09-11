@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&&family=IBM+Plex+Sans:wght@500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap");
 
 :root {
-  --logo-url: url('./img/spotcheck-logo--header-light.svg');
+  --logo-url: url("./img/spotcheck-logo--header-light.svg");
   --light: #fff;
   --dark: #181720;
   --color-bg: #fafafa;
@@ -39,7 +39,7 @@
 }
 
 :root[data-theme="dark"] {
-  --logo-url: url('./img/spotcheck-logo--header-dark.svg');
+  --logo-url: url("./img/spotcheck-logo--header-dark.svg");
   --color-bg: var(--dark);
   --color-bg-tint: #12111a;
   --color-surface: #232130;
@@ -86,7 +86,6 @@ body {
   background-image: var(--logo-url);
   background-size: contain;
   background-repeat: no-repeat;
-
 }
 
 .header__logo path[fill="#344054"] {
@@ -239,6 +238,10 @@ body {
   margin: var(--space-8) 0 0 0;
   color: var(--link-color);
   font-size: var(--font-size-15);
+
+  &:focus-visible {
+    outline: 3px solid var(--focus-color);
+  }
 }
 
 .tool-list__state {
