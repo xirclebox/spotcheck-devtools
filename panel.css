@@ -27,6 +27,7 @@
   --font-size-13: 0.8125rem;
   --font-size-14: 0.875rem;
   --font-size-15: 0.9375rem;
+  --font-size-16: 1rem;
   --font-size-17: 1.0625rem;
 
   --space-4: 0.25rem;
@@ -343,6 +344,12 @@ body {
     color: var(--link-color);
     font-size: var(--font-size-13);
   }
+}
+
+.panel--popup {
+  inline-size: 25rem;
+  max-block-size: 37.5rem;
+  overflow-y: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {

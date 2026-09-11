@@ -1,5 +1,5 @@
 (function () {
-  'use strict';
+  "use strict";
 
   var TOOLS = [
     {
@@ -85,14 +85,21 @@
     },
   ];
 
-  var listEl = document.getElementById('tool-list');
-  var statusEl = document.getElementById('status');
+  var IS_DEVTOOLS = !!(
+    typeof chrome !== "undefined" &&
+    chrome.devtools &&
+    chrome.devtools.inspectedWindow
+  );
+
+  var listEl = document.getElementById("tool-list");
+  var statusEl = document.getElementById("status");
   var scriptCache = {};
   var toggleEls = {};
 
   function setStatus(message, isError) {
-    statusEl.textContent = message || '';
-    statusEl.classList.toggle('status--error', !!isError);
+    if (!statusEl) return;
+    statusEl.textContent = message || "";
+    statusEl.classList.toggle("status--error", !!isError);
   }
 
   function loadScript(tool) {
@@ -101,7 +108,7 @@
     }
     return fetch(chrome.runtime.getURL(tool.file))
       .then(function (res) {
-        if (!res.ok) throw new Error('Failed to load ' + tool.file);
+        if (!res.ok) throw new Error("Failed to load " + tool.file);
         return res.text();
       })
       .then(function (text) {
@@ -110,21 +117,89 @@
       });
   }
 
+  function activeTabId() {
+    if (IS_DEVTOOLS) {
+      return Promise.resolve(chrome.devtools.inspectedWindow.tabId);
+    }
+    return chrome.tabs
+      .query({ active: true, currentWindow: true })
+      .then(function (tabs) {
+        if (!tabs.length || typeof tabs[0].id !== "number") {
+          throw new Error("No active tab to inspect");
+        }
+        return tabs[0].id;
+      });
+  }
+
   function evalInInspectedWindow(code) {
     return new Promise(function (resolve, reject) {
-      chrome.devtools.inspectedWindow.eval(code, function (result, exceptionInfo) {
-        if (exceptionInfo && (exceptionInfo.isException || exceptionInfo.isError)) {
-          reject(new Error(exceptionInfo.value || exceptionInfo.description || 'Script error'));
-          return;
-        }
-        resolve(result);
+      chrome.devtools.inspectedWindow.eval(
+        code,
+        function (result, exceptionInfo) {
+          if (
+            exceptionInfo &&
+            (exceptionInfo.isException || exceptionInfo.isError)
+          ) {
+            reject(
+              new Error(
+                exceptionInfo.value ||
+                  exceptionInfo.description ||
+                  "Script error",
+              ),
+            );
+            return;
+          }
+          resolve(result);
+        },
+      );
+    });
+  }
+
+  function injectFile(tool) {
+    return activeTabId().then(function (tabId) {
+      return chrome.scripting.executeScript({
+        target: { tabId: tabId, allFrames: false },
+        world: "MAIN",
+        files: [tool.file],
       });
     });
   }
 
+  function injectProbe(tool) {
+    return activeTabId()
+      .then(function (tabId) {
+        return chrome.scripting.executeScript({
+          target: { tabId: tabId, allFrames: false },
+          world: "MAIN",
+          func: function (ns) {
+            return !!window[ns];
+          },
+          args: [tool.ns],
+        });
+      })
+      .then(function (results) {
+        return !!(results && results[0] && results[0].result);
+      });
+  }
+
+  function runTool(tool) {
+    if (IS_DEVTOOLS) {
+      return loadScript(tool).then(function (code) {
+        return evalInInspectedWindow(code);
+      });
+    }
+    return injectFile(tool);
+  }
+
   function queryActive(tool) {
-    var expr = "!!window['" + tool.ns + "']";
-    return evalInInspectedWindow(expr).catch(function () {
+    if (IS_DEVTOOLS) {
+      return evalInInspectedWindow("!!window['" + tool.ns + "']").catch(
+        function () {
+          return false;
+        },
+      );
+    }
+    return injectProbe(tool).catch(function () {
       return false;
     });
   }
@@ -133,8 +208,8 @@
     var els = toggleEls[tool.id];
     if (!els) return;
     els.input.checked = !!isOn;
-    els.state.classList.toggle('tool-list__state--on', !!isOn);
-    els.state.classList.toggle('tool-list__state--off', !isOn);
+    els.state.classList.toggle("tool-list__state--on", !!isOn);
+    els.state.classList.toggle("tool-list__state--off", !isOn);
   }
 
   function refreshAll() {
@@ -149,10 +224,9 @@
     var els = toggleEls[tool.id];
     els.input.disabled = true;
 
-    loadScript(tool)
-      .then(function (code) {
-        return evalInInspectedWindow(code);
-      })
+    setStatus("");
+
+    runTool(tool)
       .then(function () {
         return queryActive(tool);
       })
@@ -164,8 +238,8 @@
           setToggleUI(tool, isOn);
         });
         setStatus(
-          'Couldn\u2019t run ' + tool.name + ' on this page: ' + err.message,
-          true
+          "Couldn\u2019t run " + tool.name + " on this page: " + err.message,
+          true,
         );
       })
       .then(function () {
@@ -175,48 +249,48 @@
 
   function buildList() {
     TOOLS.forEach(function (tool) {
-      var li = document.createElement('li');
-      li.className = 'tool-list__item';
+      var li = document.createElement("li");
+      li.className = "tool-list__item";
 
-      var body = document.createElement('div');
-      body.className = 'tool-list__body';
+      var body = document.createElement("div");
+      body.className = "tool-list__body";
 
-      var name = document.createElement('span');
-      name.className = 'tool-list__name';
-      name.id = 'tool-name-' + tool.id;
+      var name = document.createElement("span");
+      name.className = "tool-list__name";
+      name.id = "tool-name-" + tool.id;
       name.textContent = tool.name;
 
-      var desc = document.createElement('p');
-      desc.className = 'tool-list__desc';
+      var desc = document.createElement("p");
+      desc.className = "tool-list__desc";
       desc.textContent = tool.desc;
 
-      var link = document.createElement('a');
-      link.className = 'tool-list__link';
+      var link = document.createElement("a");
+      link.className = "tool-list__link";
       link.textContent = tool.linkName;
       link.setAttribute("href", tool.link);
       link.setAttribute("target", "_blank");
 
-      var state = document.createElement('span');
-      state.className = 'tool-list__state tool-list__state--off';
+      var state = document.createElement("span");
+      state.className = "tool-list__state tool-list__state--off";
 
       body.appendChild(name);
       body.appendChild(desc);
       body.appendChild(link);
       body.appendChild(state);
 
-      var label = document.createElement('label');
-      label.className = 'toggle';
+      var label = document.createElement("label");
+      label.className = "toggle";
 
-      var input = document.createElement('input');
-      input.type = 'checkbox';
-      input.className = 'toggle__input';
-      input.setAttribute('aria-labelledby', name.id);
+      var input = document.createElement("input");
+      input.type = "checkbox";
+      input.className = "toggle__input";
+      input.setAttribute("aria-labelledby", name.id);
 
-      var track = document.createElement('span');
-      track.className = 'toggle__track';
-      track.setAttribute('aria-hidden', 'true');
-      var thumb = document.createElement('span');
-      thumb.className = 'toggle__thumb';
+      var track = document.createElement("span");
+      track.className = "toggle__track";
+      track.setAttribute("aria-hidden", "true");
+      var thumb = document.createElement("span");
+      thumb.className = "toggle__thumb";
       track.appendChild(thumb);
 
       label.appendChild(input);
@@ -228,14 +302,55 @@
 
       toggleEls[tool.id] = { input: input, state: state };
 
-      input.addEventListener('change', function () {
+      input.addEventListener("change", function () {
         handleToggle(tool);
       });
     });
   }
 
+  function stampVersion() {
+    var badge = document.querySelector(".version__badge");
+    if (!badge || !chrome.runtime || !chrome.runtime.getManifest) return;
+    badge.textContent = "v." + chrome.runtime.getManifest().version;
+  }
+
+  function applyContext() {
+    document.body.classList.add("panel");
+    if (!IS_DEVTOOLS) {
+      document.body.classList.add("panel--popup");
+    }
+  }
+
+  function checkPageAccess() {
+    if (IS_DEVTOOLS) return;
+    activeTabId()
+      .then(function (tabId) {
+        return chrome.scripting.executeScript({
+          target: { tabId: tabId, allFrames: false },
+          world: "MAIN",
+          func: function () {
+            return true;
+          },
+        });
+      })
+      .catch(function () {
+        setStatus(
+          "This page can\u2019t be inspected. Open a regular http or https page and try again.",
+          true,
+        );
+        TOOLS.forEach(function (tool) {
+          if (toggleEls[tool.id]) {
+            toggleEls[tool.id].input.disabled = true;
+          }
+        });
+      });
+  }
+
+  applyContext();
+  stampVersion();
   buildList();
   refreshAll();
+  checkPageAccess();
 
   var pollInFlight = false;
   setInterval(function () {
@@ -246,13 +361,17 @@
         return queryActive(tool).then(function (isOn) {
           setToggleUI(tool, isOn);
         });
-      })
+      }),
     ).then(function () {
       pollInFlight = false;
     });
   }, 1500);
 
-  if (chrome.devtools && chrome.devtools.network && chrome.devtools.network.onNavigated) {
+  if (
+    chrome.devtools &&
+    chrome.devtools.network &&
+    chrome.devtools.network.onNavigated
+  ) {
     chrome.devtools.network.onNavigated.addListener(function () {
       refreshAll();
     });
