@@ -10,31 +10,31 @@
 
   var COLORS = {
     green: "#1a7d4f",
-    red: "#be412a"
+    red: "#be412a",
   };
 
   var OUTLINES = {
     green: "5px solid",
-    red: "5px dashed"
+    red: "5px dashed",
   };
 
   var OUTLINE_OFFSET = "3px";
 
   var DOTS = {
     green: "#3fbf7f",
-    red: "#e06a4f"
+    red: "#e06a4f",
   };
 
   var LEVELS = {
     natural: "green",
-    positive: "red"
+    positive: "red",
   };
 
   var NOTE_PREFIX = "tabindex=";
   var NOTE_SUFFIX = ", positive tabindex";
 
   var FOCUSABLE_SELECTOR =
-    "a[href],button,input,select,textarea,details,[tabindex],[contenteditable=\"true\"]";
+    'a[href],button,input,select,textarea,details,[tabindex],[contenteditable="true"]';
   var REPLACED_TAGS = { INPUT: 1, TEXTAREA: 1, SELECT: 1, IMG: 1 };
   var HIDDEN_INPUT_TYPE = "hidden";
   var COUNTER_SIZE = 24;
@@ -107,10 +107,12 @@
       "border-radius:50%",
       "background:" + COLORS[LEVELS[kind]],
       "color:#fff",
-      "font:700 16px/" + COUNTER_SIZE + "px Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      "font:700 16px/" +
+        COUNTER_SIZE +
+        'px Arial, Helvetica, "Helvetica Neue", sans-serif',
       "text-align:center",
       "pointer-events:none",
-      "z-index:2147483646"
+      "z-index:2147483646",
     ].join(";");
     return counter;
   }
@@ -131,10 +133,10 @@
       "border-radius:4px",
       "background:" + COLORS[LEVELS[kind]],
       "color:#fff",
-      "font:500 16px/1.2 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:500 16px/1.2 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "pointer-events:none",
       "white-space:nowrap",
-      "z-index:2147483646"
+      "z-index:2147483646",
     ].join(";");
     return note;
   }
@@ -177,7 +179,7 @@
       offset: el.style.outlineOffset,
       position: el.style.position,
       counter: makeCounter(kind, order),
-      note: kind === "positive" ? makeNote(kind, el) : null
+      note: kind === "positive" ? makeNote(kind, el) : null,
     };
 
     counts[color] += 1;
@@ -219,15 +221,15 @@
       "max-width:300px",
       "padding:12px 32px 12px 16px",
       "border-radius:6px",
-      "background:#1b2430",
+      "background:#181720",
       "color:#e7eaed",
-      "font:400 14px/1.5 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:400 14px/1.5 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "box-shadow:0 8px 24px rgba(0,0,0,0.35)",
-      "z-index:2147483647"
+      "z-index:2147483647",
     ].join(";");
 
     heading.textContent = "Tab Order Visualizer";
-    heading.style.cssText = "display:block;margin-bottom:4px;color:#fff"
+    heading.style.cssText = "display:block;margin-bottom:4px;color:#fff";
     wrapper.appendChild(heading);
 
     wrapper.appendChild(makeCountLine("green", "natural order"));
@@ -246,8 +248,8 @@
       "border:none",
       "background:transparent",
       "color:#e7eaed",
-      "font:16px/1 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
-      "cursor:pointer"
+      'font:16px/1 Arial, Helvetica, "Helvetica Neue", sans-serif',
+      "cursor:pointer",
     ].join(";");
     close.addEventListener("click", clear);
     wrapper.appendChild(close);
@@ -281,7 +283,10 @@
   }
 
   tabOrder(
-    Array.prototype.filter.call(d.querySelectorAll(FOCUSABLE_SELECTOR), isFocusable)
+    Array.prototype.filter.call(
+      d.querySelectorAll(FOCUSABLE_SELECTOR),
+      isFocusable,
+    ),
   ).forEach(function (el, index) {
     mark(el, index + 1);
   });

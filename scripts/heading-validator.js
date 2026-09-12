@@ -10,36 +10,36 @@
 
   var COLORS = {
     green: "#1a7d4f",
-    red: "#be412a"
+    red: "#be412a",
   };
 
   var OUTLINES = {
     green: "5px solid",
-    red: "5px dashed"
+    red: "5px dashed",
   };
 
   var OUTLINE_OFFSET = "3px";
 
   var DOTS = {
     green: "#3fbf7f",
-    red: "#e06a4f"
+    red: "#e06a4f",
   };
 
   var LEVELS = {
     ok: "green",
     empty: "red",
     multiple: "red",
-    skipped: "red"
+    skipped: "red",
   };
 
   var BADGES = {
     ok: "Pass",
     empty: "Empty heading",
     multiple: "Multiple top-level headings",
-    skipped: "Skipped from"
+    skipped: "Skipped from",
   };
 
-  var HEADING_SELECTOR = "h1,h2,h3,h4,h5,h6,[role=\"heading\"]";
+  var HEADING_SELECTOR = 'h1,h2,h3,h4,h5,h6,[role="heading"]';
   var TAG_PATTERN = /^H([1-6])$/;
   var DEFAULT_ARIA_LEVEL = 2;
 
@@ -105,10 +105,10 @@
       "border-radius:4px",
       "background:" + COLORS[LEVELS[kind]],
       "color:#fff",
-      "font:500 16px/1.2 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:500 16px/1.2 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "vertical-align:middle",
       "position:relative",
-      "z-index:2147483646"
+      "z-index:2147483646",
     ].join(";");
     return badge;
   }
@@ -121,7 +121,7 @@
       el: el,
       outline: el.style.outline,
       offset: el.style.outlineOffset,
-      badge: makeBadge(kind, level)
+      badge: makeBadge(kind, level),
     };
 
     counts[color] += 1;
@@ -157,15 +157,15 @@
       "max-width:260px",
       "padding:12px 32px 12px 16px",
       "border-radius:6px",
-      "background:#1b2430",
+      "background:#181720",
       "color:#e7eaed",
-      "font:400 14px/1.5 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:400 14px/1.5 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "box-shadow:0 8px 24px rgba(0,0,0,0.35)",
-      "z-index:2147483647"
+      "z-index:2147483647",
     ].join(";");
 
     heading.textContent = "Heading Hierarchy Validator";
-    heading.style.cssText = "display:block;margin-bottom:4px;color:#fff"
+    heading.style.cssText = "display:block;margin-bottom:4px;color:#fff";
     wrapper.appendChild(heading);
 
     wrapper.appendChild(makeCountLine("green", "passed"));
@@ -184,8 +184,8 @@
       "border:none",
       "background:transparent",
       "color:#e7eaed",
-      "font:16px/1 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
-      "cursor:pointer"
+      'font:16px/1 Arial, Helvetica, "Helvetica Neue", sans-serif',
+      "cursor:pointer",
     ].join(";");
     close.addEventListener("click", clear);
     wrapper.appendChild(close);

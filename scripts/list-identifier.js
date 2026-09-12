@@ -11,13 +11,13 @@
   var COLORS = {
     green: "#1a7d4f",
     gold: "#8b6800",
-    red: "#be412a"
+    red: "#be412a",
   };
 
   var OUTLINES = {
     green: "5px solid",
     gold: "6px dotted",
-    red: "5px dashed"
+    red: "5px dashed",
   };
 
   var OUTLINE_OFFSET = "3px";
@@ -25,7 +25,7 @@
   var DOTS = {
     green: "#3fbf7f",
     gold: "#e0b84f",
-    red: "#e06a4f"
+    red: "#e06a4f",
   };
 
   var LEVELS = {
@@ -33,7 +33,7 @@
     emptyItems: "gold",
     empty: "red",
     stray: "red",
-    orphan: "red"
+    orphan: "red",
   };
 
   var BADGES = {
@@ -41,7 +41,7 @@
     emptyItems: "empty <li>",
     empty: "empty list",
     stray: "non-<li> content as a direct child",
-    orphan: "not inside <ul>/<ol>/<menu>"
+    orphan: "not inside <ul>/<ol>/<menu>",
   };
 
   var COUNTED_KINDS = ["ok", "emptyItems"];
@@ -132,10 +132,10 @@
       "border-radius:4px",
       "background:" + COLORS[LEVELS[kind]],
       "color:#fff",
-      "font:500 16px/1.2 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:500 16px/1.2 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "z-index:2147483646",
       "pointer-events:none",
-      "white-space:nowrap"
+      "white-space:nowrap",
     ].join(";");
     return badge;
   }
@@ -147,7 +147,7 @@
       outline: el.style.outline,
       offset: el.style.outlineOffset,
       position: el.style.position,
-      badge: makeBadge(el, kind, count)
+      badge: makeBadge(el, kind, count),
     };
 
     counts[color] += 1;
@@ -186,15 +186,15 @@
       "max-width:300px",
       "padding:12px 32px 12px 16px",
       "border-radius:6px",
-      "background:#1b2430",
+      "background:#181720",
       "color:#e7eaed",
-      "font:400 14px/1.5 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:400 14px/1.5 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "box-shadow:0 8px 24px rgba(0,0,0,0.35)",
-      "z-index:2147483647"
+      "z-index:2147483647",
     ].join(";");
 
     heading.textContent = "List Identifier";
-    heading.style.cssText = "display:block;margin-bottom:4px;color:#fff"
+    heading.style.cssText = "display:block;margin-bottom:4px;color:#fff";
     wrapper.appendChild(heading);
 
     wrapper.appendChild(makeCountLine("green", "correct"));
@@ -214,8 +214,8 @@
       "border:none",
       "background:transparent",
       "color:#e7eaed",
-      "font:16px/1 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
-      "cursor:pointer"
+      'font:16px/1 Arial, Helvetica, "Helvetica Neue", sans-serif',
+      "cursor:pointer",
     ].join(";");
     close.addEventListener("click", clear);
     wrapper.appendChild(close);
@@ -248,10 +248,12 @@
     return !parent || !LIST_PARENT_TAGS[parent.tagName];
   }
 
-  Array.prototype.slice.call(d.querySelectorAll(LIST_SELECTOR)).forEach(function (list) {
-    var kind = classifyList(list);
-    mark(list, kind, countFor(list, kind));
-  });
+  Array.prototype.slice
+    .call(d.querySelectorAll(LIST_SELECTOR))
+    .forEach(function (list) {
+      var kind = classifyList(list);
+      mark(list, kind, countFor(list, kind));
+    });
 
   Array.prototype.slice
     .call(d.querySelectorAll(ITEM_TAG.toLowerCase()))

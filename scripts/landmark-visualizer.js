@@ -11,13 +11,13 @@
   var COLORS = {
     green: "#1a7d4f",
     gold: "#8b6800",
-    red: "#be412a"
+    red: "#be412a",
   };
 
   var OUTLINES = {
     green: "5px solid",
     gold: "6px dotted",
-    red: "5px dashed"
+    red: "5px dashed",
   };
 
   var OUTLINE_OFFSET = "3px";
@@ -25,7 +25,7 @@
   var DOTS = {
     green: "#3fbf7f",
     gold: "#e0b84f",
-    red: "#e06a4f"
+    red: "#e06a4f",
   };
 
   var LEVELS = {
@@ -33,14 +33,14 @@
     ambiguous: "gold",
     duplicate: "red",
     nested: "red",
-    unnamed: "red"
+    unnamed: "red",
   };
 
   var BADGES = {
     duplicate: "duplicate",
     nested: "nested in same role",
     unnamed: "no accessible name, not exposed as landmark",
-    ambiguous: "ambiguous, add aria-label"
+    ambiguous: "ambiguous, add aria-label",
   };
 
   var LANDMARK_SELECTOR = "header,nav,main,aside,footer,form,section,[role]";
@@ -54,7 +54,7 @@
     contentinfo: 1,
     search: 1,
     form: 1,
-    region: 1
+    region: 1,
   };
 
   var TAG_ROLES = {
@@ -64,7 +64,7 @@
     ASIDE: "complementary",
     FOOTER: "contentinfo",
     FORM: "form",
-    SECTION: "region"
+    SECTION: "region",
   };
 
   var SCOPED_TAGS = { HEADER: 1, FOOTER: 1 };
@@ -107,7 +107,7 @@
           .map(function (id) {
             return textFrom(d.getElementById(id));
           })
-          .join(" ")
+          .join(" "),
       );
       if (referenced) {
         return referenced;
@@ -117,7 +117,8 @@
   }
 
   function isNestedInSameRole(el, role) {
-    var parent = el.parentElement && el.parentElement.closest(LANDMARK_SELECTOR);
+    var parent =
+      el.parentElement && el.parentElement.closest(LANDMARK_SELECTOR);
     return !!parent && roleOf(parent) === role;
   }
 
@@ -163,9 +164,9 @@
       "border-radius:4px",
       "background:" + COLORS[LEVELS[kind]],
       "color:#fff",
-      "font:500 16px/1.2 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:500 16px/1.2 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "pointer-events:none",
-      "z-index:2147483646"
+      "z-index:2147483646",
     ].join(";");
     return badge;
   }
@@ -180,7 +181,7 @@
       outline: el.style.outline,
       offset: el.style.outlineOffset,
       position: el.style.position,
-      badge: makeBadge(kind, role, name)
+      badge: makeBadge(kind, role, name),
     };
 
     counts[color] += 1;
@@ -219,15 +220,15 @@
       "max-width:260px",
       "padding:12px 32px 12px 16px",
       "border-radius:6px",
-      "background:#1b2430",
+      "background:#181720",
       "color:#e7eaed",
-      "font:400 14px/1.5 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:400 14px/1.5 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "box-shadow:0 8px 24px rgba(0,0,0,0.35)",
-      "z-index:2147483647"
+      "z-index:2147483647",
     ].join(";");
 
     heading.textContent = "Landmark Visualizer";
-    heading.style.cssText = "display:block;margin-bottom:4px;color:#fff"
+    heading.style.cssText = "display:block;margin-bottom:4px;color:#fff";
     wrapper.appendChild(heading);
 
     wrapper.appendChild(makeCountLine("green", "correct"));
@@ -247,8 +248,8 @@
       "border:none",
       "background:transparent",
       "color:#e7eaed",
-      "font:16px/1 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
-      "cursor:pointer"
+      'font:16px/1 Arial, Helvetica, "Helvetica Neue", sans-serif',
+      "cursor:pointer",
     ].join(";");
     close.addEventListener("click", clear);
     wrapper.appendChild(close);

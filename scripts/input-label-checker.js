@@ -11,13 +11,13 @@
   var COLORS = {
     explicit: "#1a7d4f",
     implicit: "#8b6800",
-    missing: "#be412a"
+    missing: "#be412a",
   };
 
   var OUTLINES = {
     explicit: "5px solid",
     implicit: "6px dotted",
-    missing: "5px dashed"
+    missing: "5px dashed",
   };
 
   var OUTLINE_OFFSET = "3px";
@@ -25,13 +25,13 @@
   var DOTS = {
     explicit: "#3fbf7f",
     implicit: "#e0b84f",
-    missing: "#e06a4f"
+    missing: "#e06a4f",
   };
 
   var BADGES = {
     explicit: "Explicit label",
     implicit: "Implicit label",
-    missing: "No label"
+    missing: "No label",
   };
 
   var SKIP_TYPES = ["hidden", "submit", "reset", "button", "image"];
@@ -54,11 +54,13 @@
     }
     var found = [];
     if (el.id) {
-      Array.prototype.slice.call(d.querySelectorAll("label")).forEach(function (label) {
-        if (label.getAttribute("for") === el.id) {
-          found.push(label);
-        }
-      });
+      Array.prototype.slice
+        .call(d.querySelectorAll("label"))
+        .forEach(function (label) {
+          if (label.getAttribute("for") === el.id) {
+            found.push(label);
+          }
+        });
     }
     var wrapping = el.closest ? el.closest("label") : null;
     if (wrapping && found.indexOf(wrapping) === -1) {
@@ -78,7 +80,7 @@
         .map(function (id) {
           return textFrom(d.getElementById(id));
         })
-        .join(" ")
+        .join(" "),
     );
   }
 
@@ -128,11 +130,11 @@
       "border-radius:4px",
       "background:" + COLORS[kind],
       "color:#fff",
-      "font:500 16px/1.2 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:500 16px/1.2 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "letter-spacing:0.04em",
       "vertical-align:middle",
       "position:relative",
-      "z-index:2147483646"
+      "z-index:2147483646",
     ].join(";");
     return badge;
   }
@@ -143,7 +145,7 @@
       el: el,
       outline: el.style.outline,
       offset: el.style.outlineOffset,
-      badge: makeBadge(kind)
+      badge: makeBadge(kind),
     };
 
     counts[kind] += 1;
@@ -179,15 +181,15 @@
       "max-width:260px",
       "padding:12px 32px 12px 16px",
       "border-radius:6px",
-      "background:#1b2430",
+      "background:#181720",
       "color:#e7eaed",
-      "font:400 14px/1.5 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:400 14px/1.5 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "box-shadow:0 8px 24px rgba(0,0,0,0.35)",
-      "z-index:2147483647"
+      "z-index:2147483647",
     ].join(";");
 
     heading.textContent = "Input Label Checker";
-    heading.style.cssText = "display:block;margin-bottom:4px;color:#fff"
+    heading.style.cssText = "display:block;margin-bottom:4px;color:#fff";
     wrapper.appendChild(heading);
 
     wrapper.appendChild(makeCountLine("explicit", "explicit"));
@@ -207,8 +209,8 @@
       "border:none",
       "background:transparent",
       "color:#e7eaed",
-      "font:16px/1 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
-      "cursor:pointer"
+      'font:16px/1 Arial, Helvetica, "Helvetica Neue", sans-serif',
+      "cursor:pointer",
     ].join(";");
     close.addEventListener("click", clear);
     wrapper.appendChild(close);

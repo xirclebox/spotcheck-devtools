@@ -17,14 +17,14 @@
     green: "#1a7d4f",
     gold: "#8b6800",
     red: "#be412a",
-    grey: "#4a5464"
+    grey: "#4a5464",
   };
 
   var OUTLINES = {
     green: "5px solid",
     gold: "6px dotted",
     red: "6px dashed",
-    grey: "3px dotted"
+    grey: "3px dotted",
   };
 
   var OUTLINE_OFFSET = "3px";
@@ -33,7 +33,7 @@
     green: "#3fbf7f",
     gold: "#e0b84f",
     red: "#e06a4f",
-    grey: "#9aa4b2"
+    grey: "#9aa4b2",
   };
 
   var LEVELS = {
@@ -41,7 +41,7 @@
     minimum: "gold",
     spacing: "gold",
     small: "red",
-    inline: "grey"
+    inline: "grey",
   };
 
   var BADGES = {
@@ -49,7 +49,7 @@
     minimum: "Meets 2.5.8 Minimum",
     spacing: "Under 24, spacing exception",
     small: "Under 24 by 24",
-    inline: "Inline in text, exempt"
+    inline: "Inline in text, exempt",
   };
 
   var SELECTOR = [
@@ -75,7 +75,7 @@
     "[role=option]",
     "[role=slider]",
     "[role=spinbutton]",
-    "[role=treeitem]"
+    "[role=treeitem]",
   ].join(",");
 
   var records = [];
@@ -126,7 +126,7 @@
       right: right,
       bottom: bottom,
       width: right - left,
-      height: bottom - top
+      height: bottom - top,
     };
   }
 
@@ -183,7 +183,7 @@
   function center(rect) {
     return {
       x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2
+      y: rect.top + rect.height / 2,
     };
   }
 
@@ -256,9 +256,9 @@
       "border-radius:4px",
       "background:" + COLORS[level],
       "color:#fff",
-      "font:500 13px/1.3 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:500 13px/1.3 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "pointer-events:none",
-      "z-index:2147483646"
+      "z-index:2147483646",
     ].join(";");
     return badge;
   }
@@ -278,7 +278,7 @@
       el: el,
       outline: el.style.outline,
       offset: el.style.outlineOffset,
-      badge: makeBadge(item, kind)
+      badge: makeBadge(item, kind),
     };
 
     counts[level] += 1;
@@ -315,11 +315,11 @@
       "max-width:260px",
       "padding:12px 32px 12px 16px",
       "border-radius:6px",
-      "background:#1b2430",
+      "background:#181720",
       "color:#e7eaed",
-      "font:400 14px/1.5 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
+      'font:400 14px/1.5 Arial, Helvetica, "Helvetica Neue", sans-serif',
       "box-shadow:0 8px 24px rgba(0,0,0,0.35)",
-      "z-index:2147483647"
+      "z-index:2147483647",
     ].join(";");
 
     heading.textContent = "Target Size Checker";
@@ -344,8 +344,8 @@
       "border:none",
       "background:transparent",
       "color:#e7eaed",
-      "font:16px/1 Arial, Helvetica, \"Helvetica Neue\", sans-serif",
-      "cursor:pointer"
+      'font:16px/1 Arial, Helvetica, "Helvetica Neue", sans-serif',
+      "cursor:pointer",
     ].join(";");
     close.addEventListener("click", clear);
     wrapper.appendChild(close);
@@ -387,7 +387,7 @@
       return {
         el: el,
         rect: rect,
-        undersized: rect.width < MIN_SIZE || rect.height < MIN_SIZE
+        undersized: rect.width < MIN_SIZE || rect.height < MIN_SIZE,
       };
     });
 

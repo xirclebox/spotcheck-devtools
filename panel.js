@@ -315,7 +315,7 @@
   }
 
   function applyContext() {
-    document.body.classList.add("panel");
+    document.body.classList.add("spotcheck", "panel");
     if (!IS_DEVTOOLS) {
       document.body.classList.add("panel--popup");
     }
