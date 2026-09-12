@@ -121,14 +121,23 @@
     if (IS_DEVTOOLS) {
       return Promise.resolve(chrome.devtools.inspectedWindow.tabId);
     }
-    return chrome.tabs
-      .query({ active: true, currentWindow: true })
-      .then(function (tabs) {
-        if (!tabs.length || typeof tabs[0].id !== "number") {
-          throw new Error("No active tab to inspect");
-        }
-        return tabs[0].id;
-      });
+    return new Promise(function (resolve, reject) {
+      chrome.tabs.query(
+        { active: true, currentWindow: true },
+        function (tabs) {
+          var lastError = chrome.runtime.lastError;
+          if (lastError) {
+            reject(new Error(lastError.message));
+            return;
+          }
+          if (!tabs || !tabs.length || typeof tabs[0].id !== "number") {
+            reject(new Error("No active tab to inspect"));
+            return;
+          }
+          resolve(tabs[0].id);
+        },
+      );
+    });
   }
 
   function evalInInspectedWindow(code) {
@@ -352,20 +361,22 @@
   refreshAll();
   checkPageAccess();
 
-  var pollInFlight = false;
-  setInterval(function () {
-    if (pollInFlight) return;
-    pollInFlight = true;
-    Promise.all(
-      TOOLS.map(function (tool) {
-        return queryActive(tool).then(function (isOn) {
-          setToggleUI(tool, isOn);
-        });
-      }),
-    ).then(function () {
-      pollInFlight = false;
-    });
-  }, 1500);
+  if (IS_DEVTOOLS) {
+    var pollInFlight = false;
+    setInterval(function () {
+      if (pollInFlight) return;
+      pollInFlight = true;
+      Promise.all(
+        TOOLS.map(function (tool) {
+          return queryActive(tool).then(function (isOn) {
+            setToggleUI(tool, isOn);
+          });
+        }),
+      ).then(function () {
+        pollInFlight = false;
+      });
+    }, 1500);
+  }
 
   if (
     chrome.devtools &&
