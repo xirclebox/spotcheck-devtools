@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "SpotCheck: Accessibility Toolkit",
   "version": "1.4.0",
-  "description": "Toggle any of the tests to spot check common accessibility issues. Each one links to its related WCAG 2.2 success criteria.",
+  "description": "Toggle any of the tests to spot-check common accessibility issues. Each one links to its related WCAG 2.2 success criteria.",
   "devtools_page": "devtools.html",
   "action": {
     "default_title": "SpotCheck: Accessibility Toolkit",
