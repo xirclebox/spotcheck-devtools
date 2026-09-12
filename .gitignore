@@ -1,2 +1,5 @@
 # Ignore zip files
 *.zip
+
+# ignore directories
+.vscode/
