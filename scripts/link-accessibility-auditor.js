@@ -57,7 +57,11 @@
 
   var MIN_NAME_LENGTH = 4;
   var HIDDEN_SELECTOR = '[aria-hidden="true"]';
+  var TEXT_NODE = 3;
+  var ELEMENT_NODE = 1;
   var NOTE_ATTRIBUTE = "data-a11y-link-check-note";
+
+  var SLOT_TAG = "SLOT";
 
   var records = [];
   var counts = { green: 0, gold: 0, red: 0 };
@@ -65,6 +69,47 @@
 
   function normalize(value) {
     return (value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function flatChildren(node) {
+    if (node.tagName === SLOT_TAG && node.assignedElements) {
+      var assigned = node.assignedElements({ flatten: true });
+      if (assigned.length) {
+        return assigned;
+      }
+    }
+    return Array.prototype.slice.call(node.children);
+  }
+
+  function deepQuery(selector, root) {
+    var found = [];
+    var seen = new WeakSet();
+
+    function walk(node) {
+      flatChildren(node).forEach(function (el) {
+        if (seen.has(el)) {
+          return;
+        }
+        seen.add(el);
+        if (el.matches(selector)) {
+          found.push(el);
+        }
+        if (el.shadowRoot) {
+          walk(el.shadowRoot);
+          return;
+        }
+        walk(el);
+      });
+    }
+
+    walk(root || d.body);
+    return found;
+  }
+
+  function byId(el, id) {
+    var root = el.getRootNode();
+    var found = root.getElementById ? root.getElementById(id) : null;
+    return found || d.getElementById(id);
   }
 
   function textFrom(el) {
@@ -80,24 +125,51 @@
       ids
         .split(" ")
         .map(function (id) {
-          return textFrom(d.getElementById(id));
+          return textFrom(byId(el, id));
         })
         .join(" "),
     );
   }
 
+  function flatChildNodes(node) {
+    if (node.tagName === SLOT_TAG && node.assignedNodes) {
+      var assigned = node.assignedNodes({ flatten: true });
+      if (assigned.length) {
+        return assigned;
+      }
+    }
+    return Array.prototype.slice.call(node.childNodes);
+  }
+
   function visibleText(el) {
-    var clone = el.cloneNode(true);
-    Array.prototype.slice
-      .call(clone.querySelectorAll(HIDDEN_SELECTOR))
-      .forEach(function (hidden) {
-        hidden.parentNode.removeChild(hidden);
+    var parts = [];
+
+    function walk(node) {
+      flatChildNodes(node).forEach(function (child) {
+        if (child.nodeType === TEXT_NODE) {
+          parts.push(child.nodeValue);
+          return;
+        }
+        if (child.nodeType !== ELEMENT_NODE) {
+          return;
+        }
+        if (child.matches(HIDDEN_SELECTOR)) {
+          return;
+        }
+        if (child.shadowRoot) {
+          walk(child.shadowRoot);
+          return;
+        }
+        walk(child);
       });
-    return textFrom(clone);
+    }
+
+    walk(el.shadowRoot || el);
+    return normalize(parts.join(" "));
   }
 
   function imageText(el) {
-    var img = el.querySelector("img[alt]");
+    var img = deepQuery("img[alt]", el)[0];
     return img ? normalize(img.getAttribute("alt")) : "";
   }
 
@@ -262,7 +334,7 @@
     delete w[STATE_KEY];
   }
 
-  Array.prototype.slice.call(d.querySelectorAll("a")).forEach(mark);
+  deepQuery("a").forEach(mark);
 
   panel = makePanel();
   d.body.appendChild(panel);

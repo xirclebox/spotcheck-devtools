@@ -78,12 +78,75 @@
     "[role=treeitem]",
   ].join(",");
 
+  var SLOT_TAG = "SLOT";
+
   var records = [];
   var counts = { green: 0, gold: 0, red: 0, grey: 0 };
   var panel = null;
 
   function normalize(value) {
     return (value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function flatChildren(node) {
+    if (node.tagName === SLOT_TAG && node.assignedElements) {
+      var assigned = node.assignedElements({ flatten: true });
+      if (assigned.length) {
+        return assigned;
+      }
+    }
+    return Array.prototype.slice.call(node.children);
+  }
+
+  function deepQuery(selector, root) {
+    var found = [];
+    var seen = new WeakSet();
+
+    function walk(node) {
+      flatChildren(node).forEach(function (el) {
+        if (seen.has(el)) {
+          return;
+        }
+        seen.add(el);
+        if (el.matches(selector)) {
+          found.push(el);
+        }
+        if (el.shadowRoot) {
+          walk(el.shadowRoot);
+          return;
+        }
+        walk(el);
+      });
+    }
+
+    walk(root || d.body);
+    return found;
+  }
+
+  function hostOf(node) {
+    var root = node.getRootNode ? node.getRootNode() : null;
+    return root && root.host ? root.host : null;
+  }
+
+  function flatParentOf(el) {
+    if (el.assignedSlot) {
+      return el.assignedSlot.parentElement || hostOf(el.assignedSlot);
+    }
+    if (el.parentElement) {
+      return el.parentElement;
+    }
+    return hostOf(el);
+  }
+
+  function ancestorMatching(el, selector) {
+    var node = flatParentOf(el);
+    while (node) {
+      if (node.matches(selector)) {
+        return node;
+      }
+      node = flatParentOf(node);
+    }
+    return null;
   }
 
   function isOperable(el) {
@@ -93,7 +156,7 @@
     if (el.getAttribute("aria-disabled") === "true") {
       return false;
     }
-    if (el.closest("[inert]")) {
+    if (ancestorMatching(el, "[inert]")) {
       return false;
     }
     var style = getComputedStyle(el);
@@ -105,12 +168,12 @@
   }
 
   function isNested(el, lookup) {
-    var parent = el.parentElement;
+    var parent = flatParentOf(el);
     while (parent) {
       if (lookup.has(parent)) {
         return true;
       }
-      parent = parent.parentElement;
+      parent = flatParentOf(parent);
     }
     return false;
   }
@@ -165,7 +228,7 @@
     if (getComputedStyle(el).display !== "inline") {
       return false;
     }
-    var parent = el.parentNode;
+    var parent = flatParentOf(el);
     if (!parent) {
       return false;
     }
@@ -372,9 +435,7 @@
     delete w[STATE_KEY];
   }
 
-  var elements = Array.prototype.slice
-    .call(d.querySelectorAll(SELECTOR))
-    .filter(isOperable);
+  var elements = deepQuery(SELECTOR).filter(isOperable);
 
   var lookup = new WeakSet(elements);
 

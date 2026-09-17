@@ -70,6 +70,8 @@
   var SCOPED_TAGS = { HEADER: 1, FOOTER: 1 };
   var NAME_REQUIRED_ROLES = { region: 1, form: 1 };
 
+  var SLOT_TAG = "SLOT";
+
   var records = [];
   var counts = { green: 0, gold: 0, red: 0 };
   var byRole = {};
@@ -77,6 +79,73 @@
 
   function normalize(value) {
     return (value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function flatChildren(node) {
+    if (node.tagName === SLOT_TAG && node.assignedElements) {
+      var assigned = node.assignedElements({ flatten: true });
+      if (assigned.length) {
+        return assigned;
+      }
+    }
+    return Array.prototype.slice.call(node.children);
+  }
+
+  function deepQuery(selector, root) {
+    var found = [];
+    var seen = new WeakSet();
+
+    function walk(node) {
+      flatChildren(node).forEach(function (el) {
+        if (seen.has(el)) {
+          return;
+        }
+        seen.add(el);
+        if (el.matches(selector)) {
+          found.push(el);
+        }
+        if (el.shadowRoot) {
+          walk(el.shadowRoot);
+          return;
+        }
+        walk(el);
+      });
+    }
+
+    walk(root || d.body);
+    return found;
+  }
+
+  function hostOf(node) {
+    var root = node.getRootNode ? node.getRootNode() : null;
+    return root && root.host ? root.host : null;
+  }
+
+  function flatParentOf(el) {
+    if (el.assignedSlot) {
+      return el.assignedSlot.parentElement || hostOf(el.assignedSlot);
+    }
+    if (el.parentElement) {
+      return el.parentElement;
+    }
+    return hostOf(el);
+  }
+
+  function ancestorMatching(el, selector) {
+    var node = flatParentOf(el);
+    while (node) {
+      if (node.matches(selector)) {
+        return node;
+      }
+      node = flatParentOf(node);
+    }
+    return null;
+  }
+
+  function byId(el, id) {
+    var root = el.getRootNode();
+    var found = root.getElementById ? root.getElementById(id) : null;
+    return found || d.getElementById(id);
   }
 
   function textFrom(el) {
@@ -92,7 +161,7 @@
     if (!byTag) {
       return null;
     }
-    if (SCOPED_TAGS[el.tagName] && el.closest(SECTIONING_SELECTOR)) {
+    if (SCOPED_TAGS[el.tagName] && ancestorMatching(el, SECTIONING_SELECTOR)) {
       return null;
     }
     return byTag;
@@ -105,7 +174,7 @@
         ids
           .split(" ")
           .map(function (id) {
-            return textFrom(d.getElementById(id));
+            return textFrom(byId(el, id));
           })
           .join(" "),
       );
@@ -117,8 +186,7 @@
   }
 
   function isNestedInSameRole(el, role) {
-    var parent =
-      el.parentElement && el.parentElement.closest(LANDMARK_SELECTOR);
+    var parent = ancestorMatching(el, LANDMARK_SELECTOR);
     return !!parent && roleOf(parent) === role;
   }
 
@@ -277,11 +345,9 @@
     delete w[STATE_KEY];
   }
 
-  var landmarks = Array.prototype.slice
-    .call(d.querySelectorAll(LANDMARK_SELECTOR))
-    .filter(function (el) {
-      return roleOf(el) !== null;
-    });
+  var landmarks = deepQuery(LANDMARK_SELECTOR).filter(function (el) {
+    return roleOf(el) !== null;
+  });
 
   landmarks.forEach(function (el) {
     var role = roleOf(el);

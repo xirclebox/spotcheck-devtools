@@ -53,12 +53,49 @@
 
   var REDUNDANT_PATTERN = /^(image|photo|picture|graphic|icon)\s+of\b/i;
 
+  var SLOT_TAG = "SLOT";
+
   var records = [];
   var counts = { green: 0, gold: 0, red: 0 };
   var panel = null;
 
   function normalize(value) {
     return (value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function flatChildren(node) {
+    if (node.tagName === SLOT_TAG && node.assignedElements) {
+      var assigned = node.assignedElements({ flatten: true });
+      if (assigned.length) {
+        return assigned;
+      }
+    }
+    return Array.prototype.slice.call(node.children);
+  }
+
+  function deepQuery(selector, root) {
+    var found = [];
+    var seen = new WeakSet();
+
+    function walk(node) {
+      flatChildren(node).forEach(function (el) {
+        if (seen.has(el)) {
+          return;
+        }
+        seen.add(el);
+        if (el.matches(selector)) {
+          found.push(el);
+        }
+        if (el.shadowRoot) {
+          walk(el.shadowRoot);
+          return;
+        }
+        walk(el);
+      });
+    }
+
+    walk(root || d.body);
+    return found;
   }
 
   function isVisible(el) {
@@ -231,10 +268,7 @@
     delete w[STATE_KEY];
   }
 
-  Array.prototype.slice
-    .call(d.querySelectorAll("img"))
-    .filter(isVisible)
-    .forEach(mark);
+  deepQuery("img").filter(isVisible).forEach(mark);
 
   panel = makePanel();
   d.body.appendChild(panel);
