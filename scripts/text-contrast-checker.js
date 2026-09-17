@@ -31,12 +31,14 @@
   var LEVELS = {
     aaa: "green",
     aa: "gold",
+    image: "gold",
     fail: "red",
   };
 
   var BADGES = {
     aaa: "passes AAA",
     aa: "passes AA, not AAA",
+    image: "background image, check this one by hand",
     fail: "fails AA",
   };
 
@@ -55,6 +57,9 @@
   var COLOR_PATTERN = /rgba?\(([^)]+)\)/;
   var COLOR_SEPARATOR = /[\s,\/]+/;
   var WHITE = { r: 255, g: 255, b: 255, a: 1 };
+  var TRANSPARENT = { r: 0, g: 0, b: 0, a: 0 };
+  var IMAGE_NONE = "none";
+  var OPAQUE = 1;
 
   var SLOT_TAG = "SLOT";
 
@@ -173,21 +178,50 @@
     return chain.reverse();
   }
 
-  function backdropOf(el) {
-    var backdrop = WHITE;
-    var opacity = 1;
+  function opacityChain(chain) {
+    var opacities = [];
+    var running = 1;
 
-    ancestorsOf(el).forEach(function (node) {
-      opacity *= opacityOf(node);
-      var background = parseColor(getComputedStyle(node).backgroundColor);
+    chain.forEach(function (node) {
+      running *= opacityOf(node);
+      opacities.push(running);
+    });
+    return opacities;
+  }
+
+  function backdropOf(el) {
+    var chain = ancestorsOf(el);
+    var opacities = opacityChain(chain);
+    var backdrop = TRANSPARENT;
+    var image = false;
+    var index = chain.length - 1;
+    var style;
+    var background;
+
+    while (index >= 0 && backdrop.a < OPAQUE) {
+      style = getComputedStyle(chain[index]);
+      if (style.backgroundImage && style.backgroundImage !== IMAGE_NONE) {
+        image = true;
+        break;
+      }
+      background = parseColor(style.backgroundColor);
       if (background && background.a > 0) {
         backdrop = blend(
-          withAlpha(background, background.a * opacity),
           backdrop,
+          withAlpha(background, background.a * opacities[index]),
         );
       }
-    });
-    return { color: backdrop, opacity: opacity };
+      index -= 1;
+    }
+
+    if (backdrop.a < OPAQUE) {
+      backdrop = blend(backdrop, WHITE);
+    }
+    return {
+      color: backdrop,
+      opacity: opacities[opacities.length - 1],
+      image: image,
+    };
   }
 
   function channelLuminance(value) {
@@ -231,8 +265,11 @@
     return rect.width > 0 && rect.height > 0;
   }
 
-  function classify(ratio, large) {
+  function classify(ratio, large, overImage) {
     var limits = large ? THRESHOLDS.large : THRESHOLDS.normal;
+    if (overImage) {
+      return "image";
+    }
     if (ratio < limits.aa) {
       return "fail";
     }
@@ -335,7 +372,7 @@
     wrapper.appendChild(heading);
 
     wrapper.appendChild(makeCountLine("green", "AAA"));
-    wrapper.appendChild(makeCountLine("gold", "AA only"));
+    wrapper.appendChild(makeCountLine("gold", "AA only or needs review"));
     wrapper.appendChild(makeCountLine("red", "fail"));
 
     close.type = "button";
@@ -398,7 +435,7 @@
       }
       var painted = blend(withAlpha(foreground, alpha), backdrop.color);
       var ratio = contrastRatio(painted, backdrop.color);
-      var kind = classify(ratio, isLargeText(style));
+      var kind = classify(ratio, isLargeText(style), backdrop.image);
       mark(el, kind, ratio);
     });
 
