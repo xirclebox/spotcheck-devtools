@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SpotCheck: Accessibility Toolkit",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "Toggle any of the tests to spot-check common accessibility issues. Each one links to its related WCAG 2.2 success criteria.",
   "minimum_chrome_version": "111",
   "devtools_page": "devtools.html",

@@ -1,5 +1,5 @@
 (function () {
-  "use strict";
+  ("use strict");
 
   var TOOLS = [
     {
@@ -122,21 +122,18 @@
       return Promise.resolve(chrome.devtools.inspectedWindow.tabId);
     }
     return new Promise(function (resolve, reject) {
-      chrome.tabs.query(
-        { active: true, currentWindow: true },
-        function (tabs) {
-          var lastError = chrome.runtime.lastError;
-          if (lastError) {
-            reject(new Error(lastError.message));
-            return;
-          }
-          if (!tabs || !tabs.length || typeof tabs[0].id !== "number") {
-            reject(new Error("No active tab to inspect"));
-            return;
-          }
-          resolve(tabs[0].id);
-        },
-      );
+      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        var lastError = chrome.runtime.lastError;
+        if (lastError) {
+          reject(new Error(lastError.message));
+          return;
+        }
+        if (!tabs || !tabs.length || typeof tabs[0].id !== "number") {
+          reject(new Error("No active tab to inspect"));
+          return;
+        }
+        resolve(tabs[0].id);
+      });
     });
   }
 
@@ -317,12 +314,6 @@
     });
   }
 
-  function stampVersion() {
-    var badge = document.querySelector(".version__badge");
-    if (!badge || !chrome.runtime || !chrome.runtime.getManifest) return;
-    badge.textContent = "v." + chrome.runtime.getManifest().version;
-  }
-
   function applyContext() {
     document.body.classList.add("spotcheck", "panel");
     if (!IS_DEVTOOLS) {
@@ -355,8 +346,12 @@
       });
   }
 
+  var versionEl = document.querySelector(".version__number");
+  if (versionEl && chrome.runtime && chrome.runtime.getManifest) {
+    versionEl.textContent = chrome.runtime.getManifest().version;
+  }
+
   applyContext();
-  stampVersion();
   buildList();
   refreshAll();
   checkPageAccess();
