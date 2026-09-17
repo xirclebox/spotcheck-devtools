@@ -51,10 +51,12 @@
   var DEFAULT_WEIGHT = 400;
   var RATIO_DECIMALS = 2;
   var TEXT_NODE = 3;
-  var TEXT_SELECTOR = "body *";
+  var TEXT_SELECTOR = "*";
   var COLOR_PATTERN = /rgba?\(([^)]+)\)/;
   var COLOR_SEPARATOR = /[\s,\/]+/;
   var WHITE = { r: 255, g: 255, b: 255, a: 1 };
+
+  var SLOT_TAG = "SLOT";
 
   var records = [];
   var counts = { green: 0, gold: 0, red: 0 };
@@ -62,6 +64,56 @@
 
   function normalize(value) {
     return (value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function flatChildren(node) {
+    if (node.tagName === SLOT_TAG && node.assignedElements) {
+      var assigned = node.assignedElements({ flatten: true });
+      if (assigned.length) {
+        return assigned;
+      }
+    }
+    return Array.prototype.slice.call(node.children);
+  }
+
+  function deepQuery(selector, root) {
+    var found = [];
+    var seen = new WeakSet();
+
+    function walk(node) {
+      flatChildren(node).forEach(function (el) {
+        if (seen.has(el)) {
+          return;
+        }
+        seen.add(el);
+        if (el.matches(selector)) {
+          found.push(el);
+        }
+        if (el.shadowRoot) {
+          walk(el.shadowRoot);
+          return;
+        }
+        walk(el);
+      });
+    }
+
+    walk(root || d.body);
+    return found;
+  }
+
+  function hostOf(node) {
+    var root = node.getRootNode ? node.getRootNode() : null;
+    return root && root.host ? root.host : null;
+  }
+
+  function flatParentOf(el) {
+    if (el.assignedSlot) {
+      return el.assignedSlot.parentElement || hostOf(el.assignedSlot);
+    }
+    if (el.parentElement) {
+      return el.parentElement;
+    }
+    return hostOf(el);
   }
 
   function toAlpha(part) {
@@ -116,7 +168,7 @@
     var node = el;
     while (node) {
       chain.push(node);
-      node = node.parentElement;
+      node = flatParentOf(node);
     }
     return chain.reverse();
   }
@@ -329,8 +381,7 @@
     delete w[STATE_KEY];
   }
 
-  Array.prototype.slice
-    .call(d.querySelectorAll(TEXT_SELECTOR))
+  deepQuery(TEXT_SELECTOR)
     .filter(function (el) {
       return hasOwnText(el) && isRendered(el);
     })

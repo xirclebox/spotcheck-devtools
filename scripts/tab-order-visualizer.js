@@ -32,17 +32,29 @@
 
   var NOTE_PREFIX = "tabindex=";
   var NOTE_SUFFIX = ", positive tabindex";
+  var SHADOW_PREFIX = "inside ";
+  var SHADOW_SUFFIX = " shadow DOM";
+  var SLOT_PREFIX = "slotted into ";
+  var NOTE_SEPARATOR = ", ";
+  var TOTAL_WORD = "tab stop";
+  var CLOSED_WORD = "closed shadow root";
+  var CLOSED_SUFFIX = ", not inspectable";
 
   var FOCUSABLE_SELECTOR =
     'a[href],button,input,select,textarea,details,[tabindex],[contenteditable="true"]';
   var REPLACED_TAGS = { INPUT: 1, TEXTAREA: 1, SELECT: 1, IMG: 1 };
   var HIDDEN_INPUT_TYPE = "hidden";
+  var SLOT_TAG = "SLOT";
   var COUNTER_SIZE = 24;
   var COUNTER_OFFSET = 12;
 
   var records = [];
-  var counts = { green: 0, red: 0 };
+  var counts = { green: 0, red: 0, closed: 0 };
   var panel = null;
+
+  function plural(count, word) {
+    return count + " " + word + (count === 1 ? "" : "s");
+  }
 
   function normalize(value) {
     return (value || "").replace(/\s+/g, " ").trim();
@@ -58,6 +70,9 @@
   }
 
   function isFocusable(el) {
+    if (!el.matches(FOCUSABLE_SELECTOR)) {
+      return false;
+    }
     if (el.hasAttribute("disabled")) {
       return false;
     }
@@ -74,22 +89,127 @@
     return !!REPLACED_TAGS[el.tagName];
   }
 
+  function isCustomElement(el) {
+    return el.tagName.indexOf("-") !== -1;
+  }
+
+  function isClosedHost(el) {
+    return (
+      isCustomElement(el) &&
+      !el.shadowRoot &&
+      !el.children.length &&
+      !!(w.customElements && w.customElements.get(el.localName))
+    );
+  }
+
   function classify(el) {
     return el.tabIndex > 0 ? "positive" : "natural";
   }
 
-  function tabOrder(elements) {
-    var positive = elements
-      .filter(function (el) {
-        return el.tabIndex > 0;
+  function hostName(host) {
+    return host ? host.localName : "";
+  }
+
+  function flatChildren(node) {
+    if (node.tagName === SLOT_TAG && node.assignedElements) {
+      var assigned = node.assignedElements({ flatten: true });
+      if (assigned.length) {
+        return assigned;
+      }
+    }
+    return Array.prototype.slice.call(node.children);
+  }
+
+  function collectScope(root, host, seen) {
+    var entries = [];
+
+    function walk(node) {
+      flatChildren(node).forEach(function (el) {
+        if (seen.indexOf(el) !== -1) {
+          return;
+        }
+        seen.push(el);
+
+        var entry = null;
+        if (isFocusable(el)) {
+          entry = { el: el, tabIndex: el.tabIndex, host: host, sub: null };
+          entries.push(entry);
+        }
+
+        var shadow = el.shadowRoot;
+        if (shadow) {
+          var sub = tabOrder(collectScope(shadow, el, seen));
+          if (shadow.delegatesFocus && entry && sub.length) {
+            entries.splice(entries.indexOf(entry), 1);
+            entry = null;
+          }
+          if (sub.length) {
+            if (entry) {
+              entry.sub = sub;
+            } else {
+              entries.push({
+                el: null,
+                tabIndex: el.tabIndex > 0 ? el.tabIndex : 0,
+                host: host,
+                sub: sub,
+              });
+            }
+          }
+          return;
+        }
+
+        if (isClosedHost(el)) {
+          counts.closed += 1;
+          return;
+        }
+
+        walk(el);
+      });
+    }
+
+    walk(root);
+    return entries;
+  }
+
+  function tabOrder(entries) {
+    var positive = entries
+      .filter(function (entry) {
+        return entry.tabIndex > 0;
       })
       .sort(function (a, b) {
         return a.tabIndex - b.tabIndex;
       });
-    var natural = elements.filter(function (el) {
-      return el.tabIndex <= 0;
+    var natural = entries.filter(function (entry) {
+      return entry.tabIndex <= 0;
     });
     return positive.concat(natural);
+  }
+
+  function flatten(entries, list) {
+    entries.forEach(function (entry) {
+      if (entry.el) {
+        list.push(entry);
+      }
+      if (entry.sub) {
+        flatten(entry.sub, list);
+      }
+    });
+    return list;
+  }
+
+  function noteText(entry) {
+    var parts = [];
+    if (entry.el.tabIndex > 0) {
+      parts.push(NOTE_PREFIX + entry.el.tabIndex + NOTE_SUFFIX);
+    }
+    if (entry.host) {
+      parts.push(
+        entry.el.getRootNode() === entry.host.shadowRoot
+          ? SHADOW_PREFIX + hostName(entry.host) + SHADOW_SUFFIX
+          : SLOT_PREFIX + hostName(entry.host),
+      );
+    }
+    return parts.join(NOTE_SEPARATOR);
   }
 
   function makeCounter(kind, order) {
@@ -117,12 +237,12 @@
     return counter;
   }
 
-  function makeNote(kind, el) {
+  function makeNote(kind, text) {
     var note = d.createElement("span");
 
     note.setAttribute("data-a11y-tab-check", "note");
     note.setAttribute("aria-hidden", "true");
-    note.textContent = NOTE_PREFIX + el.tabIndex + NOTE_SUFFIX;
+    note.textContent = text;
     note.style.cssText = [
       "position:absolute",
       "top:0",
@@ -170,16 +290,18 @@
     placeOnPage(el, note, false);
   }
 
-  function mark(el, order) {
+  function mark(entry, order) {
+    var el = entry.el;
     var kind = classify(el);
     var color = LEVELS[kind];
+    var text = noteText(entry);
     var record = {
       el: el,
       outline: el.style.outline,
       offset: el.style.outlineOffset,
       position: el.style.position,
       counter: makeCounter(kind, order),
-      note: kind === "positive" ? makeNote(kind, el) : null,
+      note: text ? makeNote(kind, text) : null,
     };
 
     counts[color] += 1;
@@ -204,6 +326,14 @@
     dot.style.cssText = "color:" + DOTS[color] + ";margin-right:6px";
     line.appendChild(dot);
     line.appendChild(d.createTextNode(counts[color] + " " + word));
+    return line;
+  }
+
+  function makeTextLine(text) {
+    var line = d.createElement("p");
+
+    line.style.cssText = "margin:4px 0 0;padding:0";
+    line.textContent = text;
     return line;
   }
 
@@ -234,6 +364,16 @@
 
     wrapper.appendChild(makeCountLine("green", "natural order"));
     wrapper.appendChild(makeCountLine("red", "positive tabindex"));
+
+    wrapper.appendChild(
+      makeTextLine(plural(counts.green + counts.red, TOTAL_WORD)),
+    );
+
+    if (counts.closed) {
+      wrapper.appendChild(
+        makeTextLine(plural(counts.closed, CLOSED_WORD) + CLOSED_SUFFIX),
+      );
+    }
 
     close.type = "button";
     close.textContent = "\u00d7";
@@ -282,14 +422,11 @@
     delete w[STATE_KEY];
   }
 
-  tabOrder(
-    Array.prototype.filter.call(
-      d.querySelectorAll(FOCUSABLE_SELECTOR),
-      isFocusable,
-    ),
-  ).forEach(function (el, index) {
-    mark(el, index + 1);
-  });
+  flatten(tabOrder(collectScope(d.body, null, [])), []).forEach(
+    function (entry, index) {
+      mark(entry, index + 1);
+    },
+  );
 
   panel = makePanel();
   d.body.appendChild(panel);

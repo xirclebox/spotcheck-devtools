@@ -36,12 +36,55 @@
 
   var SKIP_TYPES = ["hidden", "submit", "reset", "button", "image"];
 
+  var SLOT_TAG = "SLOT";
+
   var records = [];
   var counts = { explicit: 0, implicit: 0, missing: 0 };
   var panel = null;
 
   function normalize(value) {
     return (value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function flatChildren(node) {
+    if (node.tagName === SLOT_TAG && node.assignedElements) {
+      var assigned = node.assignedElements({ flatten: true });
+      if (assigned.length) {
+        return assigned;
+      }
+    }
+    return Array.prototype.slice.call(node.children);
+  }
+
+  function deepQuery(selector, root) {
+    var found = [];
+    var seen = new WeakSet();
+
+    function walk(node) {
+      flatChildren(node).forEach(function (el) {
+        if (seen.has(el)) {
+          return;
+        }
+        seen.add(el);
+        if (el.matches(selector)) {
+          found.push(el);
+        }
+        if (el.shadowRoot) {
+          walk(el.shadowRoot);
+          return;
+        }
+        walk(el);
+      });
+    }
+
+    walk(root || d.body);
+    return found;
+  }
+
+  function byId(el, id) {
+    var root = el.getRootNode();
+    var found = root.getElementById ? root.getElementById(id) : null;
+    return found || d.getElementById(id);
   }
 
   function textFrom(el) {
@@ -55,7 +98,7 @@
     var found = [];
     if (el.id) {
       Array.prototype.slice
-        .call(d.querySelectorAll("label"))
+        .call(el.getRootNode().querySelectorAll("label"))
         .forEach(function (label) {
           if (label.getAttribute("for") === el.id) {
             found.push(label);
@@ -78,7 +121,7 @@
       ids
         .split(" ")
         .map(function (id) {
-          return textFrom(d.getElementById(id));
+          return textFrom(byId(el, id));
         })
         .join(" "),
     );
@@ -237,8 +280,7 @@
     delete w[STATE_KEY];
   }
 
-  Array.prototype.slice
-    .call(d.querySelectorAll("input, select, textarea"))
+  deepQuery("input, select, textarea")
     .filter(function (el) {
       return SKIP_TYPES.indexOf(el.type) === -1;
     })

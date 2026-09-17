@@ -34,14 +34,21 @@
 
   var BADGES = {
     ok: "Pass",
-    empty: "Empty heading",
+    empty: "No accessible text",
     multiple: "Multiple top-level headings",
     skipped: "Skipped from",
   };
 
   var HEADING_SELECTOR = 'h1,h2,h3,h4,h5,h6,[role="heading"]';
+  var NAME_SOURCE_SELECTOR =
+    'a[href],button,img,svg,[role="link"],[role="button"],[role="img"]';
+  var HIDDEN_SELECTOR = '[aria-hidden="true"]';
+  var TEXT_NODE = 3;
+  var ELEMENT_NODE = 1;
   var TAG_PATTERN = /^H([1-6])$/;
   var DEFAULT_ARIA_LEVEL = 2;
+
+  var SLOT_TAG = "SLOT";
 
   var records = [];
   var counts = { green: 0, red: 0 };
@@ -51,6 +58,127 @@
 
   function normalize(value) {
     return (value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function flatChildren(node) {
+    if (node.tagName === SLOT_TAG && node.assignedElements) {
+      var assigned = node.assignedElements({ flatten: true });
+      if (assigned.length) {
+        return assigned;
+      }
+    }
+    return Array.prototype.slice.call(node.children);
+  }
+
+  function deepQuery(selector, root) {
+    var found = [];
+    var seen = new WeakSet();
+
+    function walk(node) {
+      flatChildren(node).forEach(function (el) {
+        if (seen.has(el)) {
+          return;
+        }
+        seen.add(el);
+        if (el.matches(selector)) {
+          found.push(el);
+        }
+        if (el.shadowRoot) {
+          walk(el.shadowRoot);
+          return;
+        }
+        walk(el);
+      });
+    }
+
+    walk(root || d.body);
+    return found;
+  }
+
+  function byId(el, id) {
+    var root = el.getRootNode();
+    var found = root.getElementById ? root.getElementById(id) : null;
+    return found || d.getElementById(id);
+  }
+
+  function flatChildNodes(node) {
+    if (node.tagName === SLOT_TAG && node.assignedNodes) {
+      var assigned = node.assignedNodes({ flatten: true });
+      if (assigned.length) {
+        return assigned;
+      }
+    }
+    return Array.prototype.slice.call(node.childNodes);
+  }
+
+  function flatText(el) {
+    var parts = [];
+
+    function walk(node) {
+      flatChildNodes(node).forEach(function (child) {
+        if (child.nodeType === TEXT_NODE) {
+          parts.push(child.nodeValue);
+          return;
+        }
+        if (child.nodeType !== ELEMENT_NODE) {
+          return;
+        }
+        if (child.matches(HIDDEN_SELECTOR)) {
+          return;
+        }
+        if (child.shadowRoot) {
+          walk(child.shadowRoot);
+          return;
+        }
+        walk(child);
+      });
+    }
+
+    walk(el.shadowRoot || el);
+    return normalize(parts.join(" "));
+  }
+
+  function textFrom(el) {
+    return el ? flatText(el) : "";
+  }
+
+  function labelledByText(el) {
+    var ids = normalize(el.getAttribute("aria-labelledby"));
+    if (!ids) {
+      return "";
+    }
+    return normalize(
+      ids
+        .split(" ")
+        .map(function (id) {
+          return textFrom(byId(el, id));
+        })
+        .join(" "),
+    );
+  }
+
+  function nameFrom(el) {
+    return (
+      labelledByText(el) ||
+      normalize(el.getAttribute("aria-label")) ||
+      flatText(el) ||
+      normalize(el.getAttribute("alt")) ||
+      normalize(el.getAttribute("title"))
+    );
+  }
+
+  function contentName(el) {
+    var name = "";
+
+    deepQuery(NAME_SOURCE_SELECTOR, el).some(function (child) {
+      name = nameFrom(child);
+      return !!name;
+    });
+    return name;
+  }
+
+  function accessibleText(el) {
+    return nameFrom(el) || contentName(el);
   }
 
   function levelOf(el) {
@@ -63,7 +191,7 @@
   }
 
   function classify(el, level) {
-    if (!normalize(el.textContent)) {
+    if (!accessibleText(el)) {
       return "empty";
     }
     if (level === 1) {
@@ -212,8 +340,7 @@
     delete w[STATE_KEY];
   }
 
-  Array.prototype.slice
-    .call(d.querySelectorAll(HEADING_SELECTOR))
+  deepQuery(HEADING_SELECTOR)
     .filter(function (el) {
       return levelOf(el) !== null;
     })

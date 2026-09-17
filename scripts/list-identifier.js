@@ -52,6 +52,8 @@
   var LIST_PARENT_TAGS = { UL: 1, OL: 1, MENU: 1 };
   var TEXT_NODE = 3;
 
+  var SLOT_TAG = "SLOT";
+
   var records = [];
   var counts = { green: 0, gold: 0, red: 0 };
   var panel = null;
@@ -60,8 +62,67 @@
     return (value || "").replace(/\s+/g, " ").trim();
   }
 
+  function flatChildren(node) {
+    if (node.tagName === SLOT_TAG && node.assignedElements) {
+      var assigned = node.assignedElements({ flatten: true });
+      if (assigned.length) {
+        return assigned;
+      }
+    }
+    return Array.prototype.slice.call(node.children);
+  }
+
+  function deepQuery(selector, root) {
+    var found = [];
+    var seen = new WeakSet();
+
+    function walk(node) {
+      flatChildren(node).forEach(function (el) {
+        if (seen.has(el)) {
+          return;
+        }
+        seen.add(el);
+        if (el.matches(selector)) {
+          found.push(el);
+        }
+        if (el.shadowRoot) {
+          walk(el.shadowRoot);
+          return;
+        }
+        walk(el);
+      });
+    }
+
+    walk(root || d.body);
+    return found;
+  }
+
+  function hostOf(node) {
+    var root = node.getRootNode ? node.getRootNode() : null;
+    return root && root.host ? root.host : null;
+  }
+
+  function flatParentOf(el) {
+    if (el.assignedSlot) {
+      return el.assignedSlot.parentElement || hostOf(el.assignedSlot);
+    }
+    if (el.parentElement) {
+      return el.parentElement;
+    }
+    return hostOf(el);
+  }
+
   function childrenOf(el) {
-    return Array.prototype.slice.call(el.children);
+    var found = [];
+
+    flatChildren(el).forEach(function (child) {
+      if (child.tagName === SLOT_TAG) {
+        found = found.concat(flatChildren(child));
+        return;
+      }
+      found.push(child);
+    });
+    return found;
   }
 
   function itemsOf(list) {
@@ -244,19 +305,16 @@
   }
 
   function isOrphanItem(item) {
-    var parent = item.parentElement;
+    var parent = flatParentOf(item);
     return !parent || !LIST_PARENT_TAGS[parent.tagName];
   }
 
-  Array.prototype.slice
-    .call(d.querySelectorAll(LIST_SELECTOR))
-    .forEach(function (list) {
-      var kind = classifyList(list);
-      mark(list, kind, countFor(list, kind));
-    });
+  deepQuery(LIST_SELECTOR).forEach(function (list) {
+    var kind = classifyList(list);
+    mark(list, kind, countFor(list, kind));
+  });
 
-  Array.prototype.slice
-    .call(d.querySelectorAll(ITEM_TAG.toLowerCase()))
+  deepQuery(ITEM_TAG.toLowerCase())
     .filter(isOrphanItem)
     .forEach(function (item) {
       mark(item, "orphan", 0);
