@@ -338,7 +338,7 @@
     var line = d.createElement("p");
     var dot = d.createElement("span");
 
-    line.style.cssText = "margin:0;padding:0";
+    line.style.cssText = "margin:0;padding:0;color:#fff";
     dot.textContent = "\u25cf";
     dot.style.cssText = "color:" + DOTS[color] + ";margin-right:6px";
     line.appendChild(dot);

@@ -122,21 +122,18 @@
       return Promise.resolve(chrome.devtools.inspectedWindow.tabId);
     }
     return new Promise(function (resolve, reject) {
-      chrome.tabs.query(
-        { active: true, currentWindow: true },
-        function (tabs) {
-          var lastError = chrome.runtime.lastError;
-          if (lastError) {
-            reject(new Error(lastError.message));
-            return;
-          }
-          if (!tabs || !tabs.length || typeof tabs[0].id !== "number") {
-            reject(new Error("No active tab to inspect"));
-            return;
-          }
-          resolve(tabs[0].id);
-        },
-      );
+      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        var lastError = chrome.runtime.lastError;
+        if (lastError) {
+          reject(new Error(lastError.message));
+          return;
+        }
+        if (!tabs || !tabs.length || typeof tabs[0].id !== "number") {
+          reject(new Error("No active tab to inspect"));
+          return;
+        }
+        resolve(tabs[0].id);
+      });
     });
   }
 
@@ -318,9 +315,9 @@
   }
 
   function stampVersion() {
-    var badge = document.querySelector(".version__badge");
+    var badge = document.querySelector(".version__number");
     if (!badge || !chrome.runtime || !chrome.runtime.getManifest) return;
-    badge.textContent = "v." + chrome.runtime.getManifest().version;
+    badge.textContent = chrome.runtime.getManifest().version;
   }
 
   function applyContext() {
