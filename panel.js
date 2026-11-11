@@ -16,7 +16,7 @@
       name: "Link Accessibility Auditor",
       ns: "__a11yLinkAuditor",
       file: "scripts/link-accessibility-auditor.js",
-      desc: "Checks every link for a real accessible name and flags generic text like \u201cclick here\u201d.",
+      desc: "Checks every link for a real accessible name and flags generic text like “click here”.",
       linkName: "Link Accessibility Auditor WCAG criteria",
       link: "https://www.spotcheck.tools/link-accessibility-auditor#criteria-heading",
     },
@@ -34,7 +34,7 @@
       name: "List Identifier",
       ns: "__a11yListIdentifier",
       file: "scripts/list-identifier.js",
-      desc: "Flags empty lists, malformed markup, and list items that aren\u2019t inside a list at all.",
+      desc: "Flags empty lists, malformed markup, and list items that aren’t inside a list at all.",
       linkName: "List Identifier WCAG criteria",
       link: "https://www.spotcheck.tools/list-identifier#criteria-heading",
     },
@@ -79,9 +79,18 @@
       name: "Target Size Checker",
       ns: "__a11yTargetSizeChecker",
       file: "scripts/target-size-checker.js",
-      desc: "Measures every clickable target and flags the ones under 24 by 24 that can\u2019t claim the spacing exception.",
+      desc: "Measures every clickable target and flags the ones under 24 by 24 that can’t claim the spacing exception.",
       linkName: "Target Size Checker WCAG criteria",
       link: "https://www.spotcheck.tools/target-size-checker#criteria-heading",
+    },
+    {
+      id: "table-name-checker",
+      name: "Table Name Checker",
+      ns: "__a11yTableNameChecker",
+      file: "scripts/table-name-checker.js",
+      desc: "Outlines every data table on the page and shows where its accessible name comes from, or that it has none.",
+      linkName: "Table Name Checker WCAG criteria",
+      link: "https://www.spotcheck.tools/table-name-checker#criteria-heading",
     },
   ];
 
@@ -244,7 +253,7 @@
           setToggleUI(tool, isOn);
         });
         setStatus(
-          "Couldn\u2019t run " + tool.name + " on this page: " + err.message,
+          "Couldn’t run " + tool.name + " on this page: " + err.message,
           true,
         );
       })
@@ -341,7 +350,7 @@
       })
       .catch(function () {
         setStatus(
-          "This page can\u2019t be inspected. Open a regular http or https page and try again.",
+          "This page can’t be inspected. Open a regular http or https page and try again.",
           true,
         );
         TOOLS.forEach(function (tool) {
